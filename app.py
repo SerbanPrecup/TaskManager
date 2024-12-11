@@ -66,6 +66,8 @@ def home():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
     if request.method == 'POST':
         email_user = request.form.get('email_user')
         password = request.form.get('password')
@@ -74,6 +76,7 @@ def login():
 
         if existing_user and bcrypt.check_password_hash(existing_user.password, password):
             flash('Account login','success')
+            login_user(existing_user)
             return render_template('dashboard.html')
 
         flash('Login failed','danger')
@@ -119,6 +122,20 @@ def register():
 
     return render_template('register.html')
 
+@app.route('/projects', methods=['GET', 'POST'])
+@login_required
+def projects():
+    return render_template('projects.html')
+
+@app.route('/history', methods=['GET', 'POST'])
+@login_required
+def history():
+    return render_template('history.html')
+
+@app.route('/tasks', methods=['GET', 'POST'])
+@login_required
+def tasks():
+    return render_template('active-tasks.html')
 
 
 if __name__ == '__main__':

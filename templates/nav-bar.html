@@ -15,15 +15,15 @@
     </button>
     <div class="collapse navbar-collapse" id="mynavbar">
       <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="javascript:void(0)">Projects</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="javascript:void(0)">Active Tasks </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="javascript:void(0)">History</a>
-        </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('projects') }}">Projects</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('tasks') }}">Active Tasks</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('history') }}">History</a>
+          </li>
       </ul>
             <form class="d-flex align-items-center">
         <input class="form-control me-2" type="text" placeholder="Search">
@@ -36,7 +36,7 @@
             <li><a class="dropdown-item" href="#">Profile</a></li>
             <li><a class="dropdown-item" href="#">Settings</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#">Logout</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
           </ul>
         </div>
       </form>
