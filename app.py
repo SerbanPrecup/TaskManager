@@ -36,9 +36,12 @@ class Project(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(1000), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Corectat
     contributors = db.Column(db.String(1000), nullable=True)
     tasks = db.relationship('Task', backref='project', lazy=True)
+    status = db.Column(db.String(100), nullable=False)
+    completed_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class Task(db.Model):
@@ -46,11 +49,13 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     name = db.Column(db.String(100),nullable=False)
     description = db.Column(db.String(1000),nullable=False)
-
     id_project = db.Column(db.Integer,db.ForeignKey('projects.id'),nullable=False)
-
     contributors = db.Column(db.String(1000),nullable=True)
-
+    status = db.Column(db.String(100),nullable=False)
+    priority = db.Column(db.Integer,nullable=False)
+    deadline = db.Column(db.DateTime,default=datetime.utcnow)
+    completed_at = db.Column(db.DateTime,default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 with app.app_context():
     db.create_all()
