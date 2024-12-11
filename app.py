@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin,login_user, LoginManager,login_required, logout_user, current_user
@@ -19,10 +21,36 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 class User(db.Model, UserMixin):
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     username = db.Column(db.String(20),nullable=False, unique=True)
     password = db.Column(db.String(80),nullable=False)
     email = db.Column(db.String(100),nullable=False, unique=True)
+
+    projects_created = db.relationship('Project', backref='creator', lazy=True)
+
+
+class Project(db.Model):
+    __tablename__ = 'projects'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(1000), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Corectat
+    contributors = db.Column(db.String(1000), nullable=True)
+    tasks = db.relationship('Task', backref='project', lazy=True)
+
+
+class Task(db.Model):
+    __tablename__ = 'tasks'
+    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
+    name = db.Column(db.String(100),nullable=False)
+    description = db.Column(db.String(1000),nullable=False)
+
+    id_project = db.Column(db.Integer,db.ForeignKey('projects.id'),nullable=False)
+
+    contributors = db.Column(db.String(1000),nullable=True)
+
 
 with app.app_context():
     db.create_all()
