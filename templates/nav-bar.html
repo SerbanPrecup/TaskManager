@@ -7,41 +7,45 @@
 </head>
 <body>
 <header id="header-demo">
-<nav class="navbar navbar-expand-sm bg-primary navbar-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="javascript:void(0)">Logo</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="mynavbar">
-      <ul class="navbar-nav me-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('projects') }}">Projects</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('tasks') }}">Active Tasks</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('history') }}">History</a>
-          </li>
-      </ul>
-            <form class="d-flex align-items-center">
-        <input class="form-control me-2" type="text" placeholder="Search">
-        <!-- Dropdown for profile image -->
-        <div class="dropdown">
-          <a href="#" class="d-block" id="dropdownProfile" data-bs-toggle="dropdown" aria-expanded="false">
-            <img src="{{ url_for('static', filename='images/profile.png') }}" alt="Avatar Logo" style="width:40px;" class="rounded-pill">
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownProfile">
-            <li><a class="dropdown-item" href="#">Profile</a></li>
-            <li><a class="dropdown-item" href="#">Settings</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
-          </ul>
+    <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="javascript:void(0)">Logo</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mynavbar">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('projects') }}">Projects</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('tasks') }}">Active Tasks</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('history') }}">History</a>
+                    </li>
+                </ul>
+                <form class="d-flex align-items-center">
+                    <input class="form-control me-2" type="text" placeholder="Search">
+                    <!-- Dropdown for profile image -->
+                    <div class="dropdown">
+                        <a href="#" class="d-block" id="dropdownProfile" data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <img src="{{ url_for('static', filename=current_user.profile_picture) }}" alt="Avatar Logo"
+                                 style="width:40px; height:40px; border-radius: 50%;" class="rounded-pill">
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownProfile">
+                            <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
+                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
         </div>
-      </form>
-    </div>
-  </div>
-</nav>
+    </nav>
 </header>
 </body>

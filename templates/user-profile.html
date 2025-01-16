@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<!--<section style="background-color: #eee;">-->
+<section style="background-color: #eee;">
+    <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center">
+            <div class="col col-lg-9 col-xl-8">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <img src="{{ url_for('static', filename=current_user.profile_picture) }}" alt="Profile Picture"
+                             class="rounded-circle img-fluid" style="width: 150px; height: 150px; border-radius: 50%;">
+                        <h5 class="my-3">
+                            John Smith
+                            <button type="button" class="btn p-0 m-0 border-0" title="Edit Name"
+                                    style="width: 20px; height: 20px; transform: translateY(-8px);">
+                                <img src="{{ url_for('static', filename='images/edit-icon.png') }}" alt="Edit"
+                                     style="width: 14px; height: 14px;">
+                            </button>
+
+                        </h5>
+                        <div class="d-flex justify-content-center mb-2">
+                            <!--                            <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary">Edit-->
+                            <!--                                Profile-->
+                            <!--                            </button>-->
+                            <button type="button" class="btn btn-outline-primary ms-1 btn-change-password"
+                                    data-action="{{ url_for('change_password') }}">Change Password
+                            </button>
+
+                        </div>
+                    </div>
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <p class="mb-0">Full Name</p>
+                                </div>
+                                <div class="col-sm-9">
+                                    <p class="text-muted mb-0">{{ username }}</p>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <p class="mb-0">Email</p>
+                                </div>
+                                <div class="col-sm-9">
+                                    <p class="text-muted mb-0">{{ email }}
+                                        <button type="button" class="btn p-0 m-0 border-0" title="Edit Name"
+                                                style="width: 20px; height: 20px; transform: translateY(-8px);">
+                                            <img src="{{ url_for('static', filename='images/edit-icon.png') }}"
+                                                 alt="Edit"
+                                                 style="width: 14px; height: 14px;">
+                                        </button>
+                                    </p>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <p class="mb-0">Projects</p>
+                                </div>
+                                <div class="col-sm-9">
+                                    <p class="text-muted mb-0">3</p>
+                                </div>
+                            </div>
+                            <hr>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-4 mb-md-0">
+                                <div class="card-body">
+                                    <p class="mb-4"><span class="text-primary font-italic me-1">assigment</span> Project
+                                        Status
+                                    </p>
+                                    <p class="mb-1" style="font-size: .77rem;">Web Design</p>
+                                    <div class="progress rounded" style="height: 5px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 80%"
+                                             aria-valuenow="80"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <p class="mt-4 mb-1" style="font-size: .77rem;">Website Markup</p>
+                                    <div class="progress rounded" style="height: 5px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 72%"
+                                             aria-valuenow="72"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <p class="mt-4 mb-1" style="font-size: .77rem;">One Page</p>
+                                    <div class="progress rounded" style="height: 5px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 89%"
+                                             aria-valuenow="89"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <p class="mt-4 mb-1" style="font-size: .77rem;">Mobile Template</p>
+                                    <div class="progress rounded" style="height: 5px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 55%"
+                                             aria-valuenow="55"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <p class="mt-4 mb-1" style="font-size: .77rem;">Backend API</p>
+                                    <div class="progress rounded mb-2" style="height: 5px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 66%"
+                                             aria-valuenow="66"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-4 mb-md-0">
+                                <div class="card-body">
+                                    <p class="mb-4"><span class="text-primary font-italic me-1">assigment</span> Project
+                                        Status
+                                    </p>
+                                    <p class="mb-1" style="font-size: .77rem;">Web Design</p>
+                                    <div class="progress rounded" style="height: 5px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 80%"
+                                             aria-valuenow="80"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <p class="mt-4 mb-1" style="font-size: .77rem;">Website Markup</p>
+                                    <div class="progress rounded" style="height: 5px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 72%"
+                                             aria-valuenow="72"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <p class="mt-4 mb-1" style="font-size: .77rem;">One Page</p>
+                                    <div class="progress rounded" style="height: 5px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 89%"
+                                             aria-valuenow="89"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <p class="mt-4 mb-1" style="font-size: .77rem;">Mobile Template</p>
+                                    <div class="progress rounded" style="height: 5px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 55%"
+                                             aria-valuenow="55"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <p class="mt-4 mb-1" style="font-size: .77rem;">Backend API</p>
+                                    <div class="progress rounded mb-2" style="height: 5px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 66%"
+                                             aria-valuenow="66"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).on('click', '.btn-change-password', function (event) {
+        event.preventDefault();
+
+        var actionUrlChangePassword = $(this).data('action');
+
+        Swal.fire({
+            title: 'Change Password',
+            html: `
+                <input type="password" id="newPassword" class="swal2-input" placeholder="New Password">
+                <input type="password" id="confirmPassword" class="swal2-input" placeholder="Confirm New Password">
+            `,
+            confirmButtonText: 'Change Password',
+            focusConfirm: false,
+            preConfirm: () => {
+                const newPassword = Swal.getPopup().querySelector('#newPassword').value;
+                const confirmPassword = Swal.getPopup().querySelector('#confirmPassword').value;
+
+                function isStrongPassword(password) {
+                    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+                    return strongPasswordRegex.test(password);
+                }
+
+                if (!newPassword || !confirmPassword) {
+                    Swal.showValidationMessage('Please enter all fields');
+                    return false;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    Swal.showValidationMessage('New passwords do not match');
+                    return false;
+                }
+
+                if (!isStrongPassword(newPassword)) {
+                    Swal.showValidationMessage('Password is not strong enough. It must be at least 8 characters long, and include an uppercase letter, a lowercase letter, and a number.');
+                    return false;
+                }
+
+                return {
+                    newPassword: newPassword
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: actionUrlChangePassword,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({newPassword: result.value.newPassword}),
+                    success: function (response) {
+                        Swal.fire({
+                            title: "Success!",
+                            text: response.message,
+                            icon: "success"
+                        });
+                    },
+                    error: function (response) {
+                        Swal.fire({
+                            title: "Error!",
+                            text: response.responseJSON?.error || "There was an error changing your password.",
+                            icon: "error"
+                        });
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}
+
+{% block head %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+{% endblock %}
