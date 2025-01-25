@@ -1,20 +1,23 @@
 from datetime import datetime
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
 import os
 from werkzeug.utils import secure_filename
+import uuid
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = os.path.join('static', 'images', 'profile_pictures')
+PROFILE_PICTURES_FOLDER = os.path.join('static', 'images', 'profile_pictures')
+PROJECT_PICTURES_FOLDER = os.path.join('static', 'images', 'project_pictures')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = 'thisisasecretkey'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['PROFILE_PICTURES_FOLDER'] = PROFILE_PICTURES_FOLDER
+app.config['PROJECT_PICTURES_FOLDER'] = PROJECT_PICTURES_FOLDER
 
 os.makedirs(os.path.join('static', 'images', 'profile_pictures'), exist_ok=True)
 
@@ -33,7 +36,8 @@ login_manager.login_view = 'login'
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    with db.session() as session:
+        return session.get(User, int(user_id))
 
 
 class User(db.Model, UserMixin):
@@ -53,9 +57,11 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(1000), nullable=False)
+    background_picture = db.Column(db.String(200), nullable=False,default='images/project_pictures/default-bg.jpg')
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Corectat
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     contributors = db.Column(db.String(1000), nullable=True)
     tasks = db.relationship('Task', backref='project', lazy=True)
     status = db.Column(db.String(100), nullable=False)
@@ -109,114 +115,15 @@ def login():
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    return render_template('dashboard.html', username=current_user.username)
+    user_projects = Project.query.filter_by(created_by=current_user.id).all()
 
+    return render_template('dashboard.html', username=current_user.username, projects=user_projects)
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
-
-
-# @app.route('/register', methods=['GET', 'POST'])
-# def register():
-#     if request.method == 'POST':
-#         username = request.form.get('username')
-#         email = request.form.get('email')
-#         password = bcrypt.generate_password_hash(request.form.get('password'))
-#         confirm_password = request.form.get('confirm_password')
-#
-#         if 'profile_picture' in request.files:
-#             file = request.files['profile_picture']
-#             if file and allowed_file(file.filename):
-#                 filename = secure_filename(file.filename)
-#                 profile_picture = None
-#             else:
-#                 profile_picture = None
-#         else:
-#             profile_picture = 'images/profile_pictures/profile.png'
-#
-#         existing_email = User.query.filter_by(email=email).first()
-#         existing_username = User.query.filter_by(username=username).first()
-#         if existing_email or existing_username:
-#             flash('Email or Username already registered. Please log in.', 'danger')
-#             return redirect(url_for('register'))
-#         if confirm_password != request.form.get('password'):
-#             flash("The password does not match.", 'danger')
-#             return redirect(url_for('register'))
-#
-#         new_user = User(
-#             username=username,
-#             email=email,
-#             password=password,
-#             profile_picture=profile_picture
-#         )
-#
-#         db.session.add(new_user)
-#         db.session.commit()
-#
-#         if file and allowed_file(file.filename):
-#
-#             filename = f"profile-picture{new_user.id}.{file.filename.rsplit('.', 1)[1].lower()}"
-#             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-#
-#             new_user.profile_picture = os.path.join('images', 'profile_pictures', filename).replace("\\", "/")
-#
-#             db.session.commit()
-#
-#         flash('Account created.', 'success')
-#         return redirect(url_for('login'))
-#
-#     return render_template('register.html')
-
-# @app.route('/register', methods=['GET', 'POST'])
-# def register():
-#     if request.method == 'POST':
-#         username = request.form.get('username')
-#         email = request.form.get('email')
-#         password = bcrypt.generate_password_hash(request.form.get('password')).decode('utf-8')
-#         confirm_password = request.form.get('confirm_password')
-#
-#         # Verificare confirmare parolă
-#         if confirm_password != request.form.get('password'):
-#             flash("The passwords do not match.", 'danger')
-#             return redirect(url_for('register'))
-#
-#         # Verificare dacă email-ul sau username-ul există deja
-#         existing_email = User.query.filter_by(email=email).first()
-#         existing_username = User.query.filter_by(username=username).first()
-#         if existing_email or existing_username:
-#             flash('Email or Username already registered. Please log in.', 'danger')
-#             return redirect(url_for('register'))
-#
-#         # Setare imagine implicită
-#         profile_picture = 'images/profile_pictures/profile.png'
-#
-#         # Gestionare fișier imagine dacă este trimis
-#         if 'profile_picture' in request.files:
-#             file = request.files['profile_picture']
-#             if file and allowed_file(file.filename):
-#                 filename = secure_filename(file.filename)
-#                 file_extension = filename.rsplit('.', 1)[1].lower()
-#                 new_filename = f"profile-picture-{username}.{file_extension}"
-#                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], new_filename))
-#                 profile_picture = f"images/profile_pictures/{new_filename}"
-#
-#         # Creare utilizator nou
-#         new_user = User(
-#             username=username,
-#             email=email,
-#             password=password,
-#             profile_picture=profile_picture
-#         )
-#         db.session.add(new_user)
-#         db.session.commit()
-#
-#         flash('Account created successfully.', 'success')
-#         return redirect(url_for('login'))
-#
-#     return render_template('register.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -251,8 +158,8 @@ def register():
             file = request.files['profile_picture']
             if file and allowed_file(file.filename):
                 file_extension = file.filename.rsplit('.', 1)[1].lower()
-                new_filename = f"profile-picture{new_user.id}.{file_extension}"
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+                new_filename = f"{uuid.uuid4().hex}.{file_extension}"
+                file_path = os.path.join(app.config['PROFILE_PICTURES_FOLDER'], new_filename)
                 file.save(file_path)
 
                 new_user.profile_picture = os.path.join('images', 'profile_pictures', new_filename).replace("\\", "/")
@@ -305,6 +212,45 @@ def change_password():
     db.session.commit()
 
     return {"message": "Password changed successfully"}, 200
+
+@app.route('/create-project', methods=['POST'])
+@login_required
+def create_project():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        description = request.form.get('description')
+
+        bg_picture = 'images/project_pictures/default-bg.jpg'
+
+        if not name or not description:
+            return jsonify({'success': False, 'message': 'Name and description are required'}), 400
+        try:
+            new_project = Project(
+                name=name,
+                description=description,
+                background_picture=bg_picture,
+                created_by=current_user.id,
+                status="In Progress",
+            )
+
+            db.session.add(new_project)
+            db.session.commit()
+
+            if 'background_picture' in request.files:
+                file = request.files['background_picture']
+                if file and allowed_file(file.filename):
+                    file_extension = file.filename.rsplit('.', 1)[1].lower()
+                    new_filename = f"{uuid.uuid4().hex}.{file_extension}"
+                    file_path = os.path.join(app.config['PROJECT_PICTURES_FOLDER'], new_filename)
+                    file.save(file_path)
+
+                    new_project.background_picture = os.path.join('images', 'project_pictures', new_filename).replace("\\", "/")
+                    db.session.commit()
+
+            return jsonify({'success': True, 'message': 'Project created successfully'}), 200
+        except Exception as e:
+            return jsonify({'success': False, 'message': f'Error creating project: {str(e)}'}), 500
+
 
 
 if __name__ == '__main__':
