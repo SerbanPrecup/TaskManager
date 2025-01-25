@@ -12,6 +12,11 @@
         <h2 class="mb-0 text-primary">Your Projects</h2>
     </div>
     <div class="container-fluid">
+
+        <div class="text-end mb-3">
+            <button class="btn btn-primary fixed-btn" onclick="createProject()">Add a new project</button>
+        </div>
+
         <div class="row">
             {% if projects %}
             {% for project in projects %}
