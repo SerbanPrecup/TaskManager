@@ -13,9 +13,10 @@
                         <img src="{{ url_for('static', filename=current_user.profile_picture) }}" alt="Profile Picture"
                              class="rounded-circle img-fluid" style="width: 150px; height: 150px; border-radius: 50%;">
                         <h5 class="my-3">
-                            John Smith
+                            {{ username }}
                             <button type="button" class="btn p-0 m-0 border-0" title="Edit Name"
-                                    style="width: 20px; height: 20px; transform: translateY(-8px);">
+                                    style="width: 20px; height: 20px; transform: translateY(-8px);"
+                                    data-edit="username">
                                 <img src="{{ url_for('static', filename='images/edit-icon.png') }}" alt="Edit"
                                      style="width: 14px; height: 14px;">
                             </button>
@@ -38,7 +39,15 @@
                                     <p class="mb-0">Full Name</p>
                                 </div>
                                 <div class="col-sm-9">
-                                    <p class="text-muted mb-0">{{ username }}</p>
+                                    <p class="text-muted mb-0">{{ fullname }}
+                                        <button type="button" class="btn p-0 m-0 border-0 " title="Edit Name"
+                                                style="width: 20px; height: 20px; transform: translateY(-8px);"
+                                                data-edit="fullname">
+                                            <img src="{{ url_for('static', filename='images/edit-icon.png') }}"
+                                                 alt="Edit"
+                                                 style="width: 14px; height: 14px;">
+                                        </button>
+                                    </p>
                                 </div>
                             </div>
                             <hr>
@@ -49,7 +58,8 @@
                                 <div class="col-sm-9">
                                     <p class="text-muted mb-0">{{ email }}
                                         <button type="button" class="btn p-0 m-0 border-0" title="Edit Name"
-                                                style="width: 20px; height: 20px; transform: translateY(-8px);">
+                                                style="width: 20px; height: 20px; transform: translateY(-8px);"
+                                                data-edit="email">
                                             <img src="{{ url_for('static', filename='images/edit-icon.png') }}"
                                                  alt="Edit"
                                                  style="width: 14px; height: 14px;">
@@ -216,6 +226,63 @@
                         Swal.fire({
                             title: "Error!",
                             text: response.responseJSON?.error || "There was an error changing your password.",
+                            icon: "error"
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+    $(document).on('click', '[data-edit]', function (event) {
+        event.preventDefault();
+
+        var editField = $(this).data('edit');
+        var currentValue = $(this).closest('.row').find('p.text-muted').text().trim();
+
+        Swal.fire({
+            title: 'Edit ' + editField.charAt(0).toUpperCase() + editField.slice(1),
+            html: `
+                <input type="text" id="editValue" class="swal2-input" placeholder="Enter new ${editField}" value="${currentValue}">
+            `,
+            confirmButtonText: 'Save Changes',
+            focusConfirm: false,
+            preConfirm: () => {
+                const newValue = Swal.getPopup().querySelector('#editValue').value;
+
+                if (!newValue) {
+                    Swal.showValidationMessage(`Please enter a new ${editField}`);
+                    return false;
+                }
+
+                return {
+                    newValue: newValue
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var actionUrlEdit = `/edit-${editField}`;  // You can update the URL as needed
+
+                $.ajax({
+                    url: actionUrlEdit,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        [editField]: result.value.newValue
+                    }),
+                    success: function (response) {
+                        Swal.fire({
+                            title: "Success!",
+                            text: response.message,
+                            icon: "success"
+                        });
+                        // Update the displayed value after successful response
+                        $('[data-edit="' + editField + '"]').closest('.row').find('p.text-muted').text(result.value.newValue);
+                    },
+                    error: function (response) {
+                        Swal.fire({
+                            title: "Error!",
+                            text: response.responseJSON?.error || "There was an error updating the " + editField,
                             icon: "error"
                         });
                     }

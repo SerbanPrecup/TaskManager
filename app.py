@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
@@ -5,10 +6,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
 import os
+
+from werkzeug.debug import console
 from werkzeug.utils import secure_filename
 import uuid
 
 app = Flask(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 PROFILE_PICTURES_FOLDER = os.path.join('static', 'images', 'profile_pictures')
 PROJECT_PICTURES_FOLDER = os.path.join('static', 'images', 'project_pictures')
@@ -44,10 +48,11 @@ class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
+    fullname = db.Column(db.String(50), nullable=False)
     password = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(100), nullable=False, unique=True)
     phone = db.Column(db.String(20), nullable=True, unique=True)
-    profile_picture = db.Column(db.String(200), nullable=False,default='images/profile_pictures/profile.png')
+    profile_picture = db.Column(db.String(200), nullable=False, default='images/profile_pictures/profile.png')
 
     projects_created = db.relationship('Project', backref='creator', lazy=True)
 
@@ -57,7 +62,7 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(1000), nullable=False)
-    background_picture = db.Column(db.String(200), nullable=False,default='images/project_pictures/default-bg.jpg')
+    background_picture = db.Column(db.String(200), nullable=False, default='images/project_pictures/default-bg.jpg')
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -119,17 +124,20 @@ def dashboard():
 
     return render_template('dashboard.html', username=current_user.username, projects=user_projects)
 
+
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
+        fullname = request.form.get('fullname')
         password = bcrypt.generate_password_hash(request.form.get('password')).decode('utf-8')
         confirm_password = request.form.get('confirm_password')
 
@@ -147,6 +155,7 @@ def register():
 
         new_user = User(
             username=username,
+            fullname=fullname,
             email=email,
             password=password,
             profile_picture=profile_picture
@@ -192,12 +201,19 @@ def tasks():
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
+    logging.info(current_user.username)
+    user_projects = Project.query.filter_by(created_by=current_user.id).all()
     return render_template(
         'user-profile.html',
         username=current_user.username,
+        fullname=current_user.fullname,
         email=current_user.email,
-        profile_picture=current_user.profile_picture
+        profile_picture=current_user.profile_picture,
+        projects=user_projects
+
     )
+
+
 @app.route('/change-password', methods=['POST'])
 @login_required
 def change_password():
@@ -212,6 +228,7 @@ def change_password():
     db.session.commit()
 
     return {"message": "Password changed successfully"}, 200
+
 
 @app.route('/create-project', methods=['POST'])
 @login_required
@@ -244,13 +261,59 @@ def create_project():
                     file_path = os.path.join(app.config['PROJECT_PICTURES_FOLDER'], new_filename)
                     file.save(file_path)
 
-                    new_project.background_picture = os.path.join('images', 'project_pictures', new_filename).replace("\\", "/")
+                    new_project.background_picture = os.path.join('images', 'project_pictures', new_filename).replace(
+                        "\\", "/")
                     db.session.commit()
 
             return jsonify({'success': True, 'message': 'Project created successfully'}), 200
         except Exception as e:
             return jsonify({'success': False, 'message': f'Error creating project: {str(e)}'}), 500
 
+
+@app.route('/edit-fullname', methods=['POST'])
+@login_required
+def edit_fullname():
+    data = request.json
+    new_fullname = data.get('fullname')
+
+    if not new_fullname:
+        return {"error": "Full name is required"}, 400
+
+    current_user.fullname = new_fullname
+    db.session.commit()
+
+    return {"message": "Full name updated successfully"}, 200
+
+
+@app.route('/edit-email', methods=['POST'])
+@login_required
+def edit_email():
+    data = request.json
+    new_email = data.get('email')
+
+    if not new_email:
+        return {"error": "Email is required"}, 400
+
+    existing_user = User.query.filter_by(email=new_email).first()
+    if existing_user:
+        return {"error": "Email is already in use"}, 400
+
+    current_user.email = new_email
+    db.session.commit()
+
+    return {"message": "Email updated successfully"}, 200
+
+@app.route('/update-username', methods=['POST'])
+@login_required
+def update_username():
+    data = request.json
+    username = data.get('username')
+
+    if username:
+        current_user.username = username
+        db.session.commit()
+        return jsonify({"message": "Username updated successfully."}), 200
+    return jsonify({"error": "Username cannot be empty."}), 400
 
 
 if __name__ == '__main__':
