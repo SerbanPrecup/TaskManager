@@ -213,7 +213,6 @@ def profile():
 
     )
 
-
 @app.route('/change-password', methods=['POST'])
 @login_required
 def change_password():
@@ -228,7 +227,6 @@ def change_password():
     db.session.commit()
 
     return {"message": "Password changed successfully"}, 200
-
 
 @app.route('/create-project', methods=['POST'])
 @login_required
@@ -269,7 +267,6 @@ def create_project():
         except Exception as e:
             return jsonify({'success': False, 'message': f'Error creating project: {str(e)}'}), 500
 
-
 @app.route('/edit-fullname', methods=['POST'])
 @login_required
 def edit_fullname():
@@ -283,7 +280,6 @@ def edit_fullname():
     db.session.commit()
 
     return {"message": "Full name updated successfully"}, 200
-
 
 @app.route('/edit-email', methods=['POST'])
 @login_required
@@ -314,6 +310,16 @@ def update_username():
         db.session.commit()
         return jsonify({"message": "Username updated successfully."}), 200
     return jsonify({"error": "Username cannot be empty."}), 400
+
+@app.route('/project/<int:project_id>')
+@login_required
+def project(project_id):
+    project = Project.query.get_or_404(project_id)
+    return render_template(
+        'project.html',
+        project=project
+    )
+
 
 
 if __name__ == '__main__':

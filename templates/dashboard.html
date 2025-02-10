@@ -17,37 +17,40 @@
             <button class="btn btn-primary fixed-btn" onclick="createProject()">Add a new project</button>
         </div>
 
-        <div class="row">
+        <div class="row flex-row flex-nowrap overflow-auto">
             {% if projects %}
             {% for project in projects %}
             <!-- Project Card -->
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card h-100">
-                    <div class="row g-0">
-                        <div class="col-12">
-                            <div class="overflow-hidden" style="max-height: 200px;">
-                                <img src="{{ url_for('static', filename=project.background_picture) }}"
-                                     class="img-fluid w-100" alt="Project Image" style="object-fit: cover;">
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ project.name }}</h5>
-                                <p class="card-text">{{ project.description }}</p>
-                                <div class="progress mb-2">
-                                    <div class="progress-bar" role="progressbar"
-                                         style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
-                                        50%
-                                    </div>
+            <div class="col-lg-3 col-md-4 col-sm-6 col-10">
+                <a href="{{ url_for('project', project_id=project.id) }}" class="text-decoration-none text-dark">
+                    <div class="card h-100">
+                        <div class="row g-0">
+                            <div class="col-12">
+                                <div class="overflow-hidden" style="max-height: 200px;">
+                                    <img src="{{ url_for('static', filename=project.background_picture) }}"
+                                         class="img-fluid w-100" alt="Project Image" style="object-fit: cover;">
                                 </div>
-                                <span class="badge bg-warning">{{ project.status }}</span>
-                                <p class="card-text"><small class="text-muted">Last updated {{ project.updated_at
-                                    }}</small></p>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ project.name }}</h5>
+                                    <p class="card-text">{{ project.description }}</p>
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar" role="progressbar"
+                                             style="width: 50%" aria-valuenow="50" aria-valuemin="0"
+                                             aria-valuemax="100">
+                                            50%
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-warning">{{ project.status }}</span>
+                                    <p class="card-text"><small class="text-muted">Last updated {{ project.updated_at
+                                        }}</small></p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
             {% endfor %}
             {% else %}
@@ -91,7 +94,6 @@
                     </div>
                 </div>
             </div>
-            <!-- Adaugă și alte carduri pentru taskuri active -->
         </div>
     </div>
 </section>
