@@ -3,7 +3,7 @@
 TaskManager is a simple and efficient web application for task management, built using Flask for the backend and HTML, CSS, and Bootstrap for the frontend. It allows users to create, update, and delete tasks with ease.
 
 ## 📌 Status
-This project is currently in progress. New features and improvements are being actively developed.
+This project is currently on hold. Development is temporarily paused, but future updates are planned.
 
 ## 🧐 Features
 - User authentication (Register & Login system)
