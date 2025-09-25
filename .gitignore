@@ -1,0 +1,21 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.env
+
+# SQLite DB + instance
+instance/
+*.db
+
+# User uploads (profile & project pictures)
+app/static/images/profile_pictures/*
+app/static/images/project_pictures/*
+!app/static/images/profile_pictures/profile.png
+!app/static/images/project_pictures/default-bg.jpg
+
+# IDE / Editor
+.idea/
+.vscode/
