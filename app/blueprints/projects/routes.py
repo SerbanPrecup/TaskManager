@@ -7,10 +7,22 @@ from ...utils.files import allowed_file
 import os, uuid
 from . import bp
 
-@bp.route("/projects", methods=["GET"])
+@bp.route("/projects")
 @login_required
 def list_projects():
-    return render_template("projects/projects.html")
+    created = Project.query.filter_by(created_by=current_user.id).all()
+    user = db.session.get(User, current_user.id)
+    contributed = user.contributed_projects
+    all_projects = created + contributed
+
+    # dacă nu ai deja calculul progresului
+    for p in all_projects:
+        try:
+            p.progress = estimate_project_progress(p.status)
+        except Exception:
+            p.progress = 0
+
+    return render_template("projects/projects.html", projects=all_projects)
 
 @bp.route("/project/<int:project_id>")
 @login_required
