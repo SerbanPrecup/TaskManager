@@ -52,76 +52,63 @@ def update_task_status(task_id):
     db.session.commit()
     return jsonify({"success": True, "message": "Status updated"})
 
-@bp.route("/task/<int:task_id>/eligible-contributors", methods=["GET"])
+
+@bp.route("/task/<int:task_id>/contributors", methods=["GET"])
 @login_required
-def eligible_task_contributors(task_id):
+def get_task_contributors(task_id):
     task = Task.query.get_or_404(task_id)
     project = task.project
 
-    # drepturi minime: creatorul proiectului sau contributor în proiect
-    if current_user.id != project.created_by and current_user not in project.contributors:
-        return jsonify({"success": False, "message": "You must be a project contributor."}), 403
+    # permisiuni: creatorul proiectului sau contributorii proiectului
+    if current_user not in project.contributors and current_user.id != project.created_by:
+        return jsonify({"success": False, "message": "No permission"}), 403
 
-    task_member_ids = {u.id for u in task.contributors}
-    eligible = []
+    # sursa de adevăr: toți contributorii proiectului (+ opțional creatorul)
+    pool_users = list(project.contributors)
+    # dacă vrei să permiți și creatorul ca assignable:
+    creator = project.creator
+    if creator and creator not in pool_users:
+        pool_users.append(creator)
 
-    # creatorul proiectului e considerat eligibil
-    creator = User.query.get(project.created_by)
-    if creator and creator.id not in task_member_ids:
-        eligible.append({
-            "id": creator.id,
-            "fullname": creator.fullname,
-            "username": creator.username,
-            "profile_picture": url_for("static", filename=creator.profile_picture)
-        })
-
-    for u in project.contributors:
-        if u.id in task_member_ids or (creator and u.id == creator.id):
-            continue
-        eligible.append({
+    users = []
+    for u in pool_users:
+        users.append({
             "id": u.id,
-            "fullname": u.fullname,
             "username": u.username,
-            "profile_picture": url_for("static", filename=u.profile_picture)
+            "fullname": u.fullname,
+            "avatar": f"/static/{u.profile_picture}",  # profil relativ salvat în DB
+            "checked": (u in task.contributors)
         })
 
-    return jsonify({"success": True, "users": eligible})
+    return jsonify({"success": True, "users": users})
 
 
-@bp.route("/task/<int:task_id>/add-contributors", methods=["POST"])
+@bp.route("/task/<int:task_id>/set-contributors", methods=["POST"])
 @login_required
-def add_task_contributors(task_id):
+def set_task_contributors(task_id):
     task = Task.query.get_or_404(task_id)
     project = task.project
 
-    if current_user.id != project.created_by and current_user not in project.contributors:
-        return jsonify({"success": False, "message": "You must be a project contributor to modify task contributors."}), 403
+    if current_user not in project.contributors and current_user.id != project.created_by:
+        return jsonify({"success": False, "message": "No permission"}), 403
 
     data = request.get_json() or {}
-    user_ids = data.get("user_ids", [])
-    if not isinstance(user_ids, list) or not user_ids:
-        return jsonify({"success": False, "message": "No contributors selected."}), 400
+    ids = data.get("user_ids", [])
+    if not isinstance(ids, list):
+        return jsonify({"success": False, "message": "Invalid payload"}), 400
 
-    allowed_ids = {u.id for u in project.contributors} | {project.created_by}
-    existing_ids = {u.id for u in task.contributors}
-    added = []
+    # Pool permis: contributorii proiectului (+ opțional creatorul)
+    allowed = {u.id for u in project.contributors}
+    allowed.add(project.created_by)
 
-    for raw in user_ids:
-        try:
-            uid = int(raw)
-        except Exception:
-            continue
-        if uid not in allowed_ids or uid in existing_ids:
-            continue
-        user = User.query.get(uid)
-        if not user:
-            continue
-        task.contributors.append(user)
-        added.append(user.username)
+    # Validare: toți id-urile trebuie să fie din pool-ul permis
+    for uid in ids:
+        if uid not in allowed:
+            return jsonify({"success": False, "message": "Invalid user selected"}), 400
 
-    task.project.updated_at = datetime.utcnow()
+    # Setează noul set de contributori
+    new_users = User.query.filter(User.id.in_(ids)).all()
+    task.contributors = new_users
     db.session.commit()
 
-    if added:
-        return jsonify({"success": True, "message": f"Added: {', '.join(added)}"})
-    return jsonify({"success": False, "message": "No valid contributors to add."}), 400
+    return jsonify({"success": True})

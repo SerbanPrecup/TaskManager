@@ -127,7 +127,7 @@
             </span>
             <p class="mt-2 mb-1"><strong>Deadline:</strong> {{ task.deadline.strftime('%Y-%m-%d') if task.deadline else 'N/A' }}</p>
 
-            <!-- Avatare + buton Add -->
+            <!-- Avatare + buton Set -->
             <div class="mt-2 d-flex flex-wrap gap-1 align-items-center">
               {% for user in task.contributors %}
                 <img src="{{ url_for('static', filename=user.profile_picture) }}"
@@ -139,9 +139,9 @@
               {% if current_user.id == project.created_by or current_user in project.contributors %}
                 <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center ms-2"
                         style="width:32px;height:32px;"
-                        title="Add contributors"
-                        onclick="openAddTaskContributors({{ task.id }})">
-                  <i class="bi bi-plus-lg"></i>
+                        title="Set contributors"
+                        onclick="openSetTaskContributors({{ task.id }})">
+                  <i class="bi bi-people"></i>
                 </button>
               {% endif %}
             </div>
@@ -179,9 +179,9 @@
               {% if current_user.id == project.created_by or current_user in project.contributors %}
                 <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center ms-2"
                         style="width:32px;height:32px;"
-                        title="Add contributors"
-                        onclick="openAddTaskContributors({{ task.id }})">
-                  <i class="bi bi-plus-lg"></i>
+                        title="Set contributors"
+                        onclick="openSetTaskContributors({{ task.id }})">
+                  <i class="bi bi-people"></i>
                 </button>
               {% endif %}
             </div>
@@ -219,9 +219,9 @@
               {% if current_user.id == project.created_by or current_user in project.contributors %}
                 <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center ms-2"
                         style="width:32px;height:32px;"
-                        title="Add contributors"
-                        onclick="openAddTaskContributors({{ task.id }})">
-                  <i class="bi bi-plus-lg"></i>
+                        title="Set contributors"
+                        onclick="openSetTaskContributors({{ task.id }})">
+                  <i class="bi bi-people"></i>
                 </button>
               {% endif %}
             </div>
@@ -237,8 +237,10 @@
   </div>
 </div>
 
-<!-- SweetAlert + Add Contributor to Project -->
+<!-- SweetAlert -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Add Contributor to Project (by username) -->
 <script>
 function addContributor() {
   Swal.fire({
@@ -279,6 +281,7 @@ function addContributor() {
 }
 </script>
 
+<!-- Change Project Status -->
 <script>
 function changeProjectStatus() {
   Swal.fire({
@@ -445,10 +448,10 @@ function addTask() {
 }
 </script>
 
-<!-- Add contributors to a specific task (from DB, not pre-rendered) -->
+<!-- Set contributors for a specific task using new routes -->
 <script>
-function openAddTaskContributors(taskId) {
-  fetch(`/task/${taskId}/eligible-contributors`, {
+function openSetTaskContributors(taskId) {
+  fetch(`/task/${taskId}/contributors`, {
     headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
   })
   .then(r => r.json())
@@ -457,42 +460,68 @@ function openAddTaskContributors(taskId) {
       Swal.fire('Error', payload.message || 'Could not load contributors.', 'error');
       return;
     }
+
     const users = payload.users || [];
+
     if (!users.length) {
-      Swal.fire('Info', 'All project contributors are already on this task.', 'info');
+      Swal.fire('Info', 'No eligible contributors found for this project.', 'info');
       return;
     }
 
-    const html = users.map(u => `
+    const list = users.map(u => `
       <div class="form-check d-flex align-items-center mb-2">
-        <input class="form-check-input me-2" type="checkbox" value="${u.id}" id="task-${taskId}-u-${u.id}">
-        <img src="${u.profile_picture}" alt="Pic" class="rounded-circle me-2" style="width:30px;height:30px;object-fit:cover;">
+        <input class="form-check-input me-2" type="checkbox" value="${u.id}" id="task-${taskId}-u-${u.id}" ${u.checked ? 'checked' : ''}>
+        <img src="${u.avatar}" alt="Pic" class="rounded-circle me-2" style="width:30px;height:30px;object-fit:cover;">
         <label class="form-check-label" for="task-${taskId}-u-${u.id}">
           ${u.fullname} (${u.username})
         </label>
       </div>
     `).join("");
 
+    const html = `
+      <div style="margin-bottom:8px; display:flex; gap:8px;">
+        <input type="text" id="filter-users" class="swal2-input" placeholder="Filter users..." style="flex:1; margin:0;">
+        <button type="button" id="btn-select-all" class="swal2-confirm swal2-styled" style="padding:6px 10px;">Select all</button>
+        <button type="button" id="btn-deselect-all" class="swal2-cancel swal2-styled" style="padding:6px 10px;">None</button>
+      </div>
+      <div class="contributor-box" style="max-height:260px;overflow:auto;">${list}</div>
+    `;
+
     Swal.fire({
-      title: 'Add Contributors',
-      html: `<div class="contributor-box" style="max-height:240px;overflow:auto;">${html}</div>`,
+      title: 'Set Task Contributors',
+      html: html,
       focusConfirm: false,
       showCancelButton: true,
-      confirmButtonText: 'Add',
+      confirmButtonText: 'Save',
+      didOpen: () => {
+        // filter logic
+        const input = document.getElementById('filter-users');
+        input.addEventListener('input', () => {
+          const q = input.value.toLowerCase();
+          document.querySelectorAll('#swal2-html-container .form-check').forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(q) ? '' : 'none';
+          });
+        });
+        // select/deselect all
+        document.getElementById('btn-select-all').addEventListener('click', () => {
+          document.querySelectorAll('#swal2-html-container input[type="checkbox"]').forEach(cb => cb.checked = true);
+        });
+        document.getElementById('btn-deselect-all').addEventListener('click', () => {
+          document.querySelectorAll('#swal2-html-container input[type="checkbox"]').forEach(cb => cb.checked = false);
+        });
+      },
       preConfirm: () => {
         const checked = Array.from(
           document.querySelectorAll('#swal2-html-container input[type="checkbox"]:checked')
-        ).map(cb => cb.value);
-        if (!checked.length) {
-          Swal.showValidationMessage('Select at least one contributor');
-          return false;
-        }
+        ).map(cb => parseInt(cb.value, 10));
+        // putem trimite și listă goală; backend-ul va seta 0 contributori
         return checked;
       }
     }).then(res => {
-      if (!res.isConfirmed || !res.value) return;
+      if (!res.isConfirmed || res.value === undefined) return;
 
-      fetch(`/task/${taskId}/add-contributors`, {
+      fetch(`/task/${taskId}/set-contributors`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -503,9 +532,9 @@ function openAddTaskContributors(taskId) {
       .then(r => r.json())
       .then(data => {
         if (data.success) {
-          Swal.fire('Success', data.message, 'success').then(() => location.reload());
+          Swal.fire('Saved', 'Contributors updated.', 'success').then(() => location.reload());
         } else {
-          Swal.fire('Error', data.message || 'Could not add contributors.', 'error');
+          Swal.fire('Error', data.message || 'Could not update contributors.', 'error');
         }
       })
       .catch(() => Swal.fire('Error', 'Request failed.', 'error'));
