@@ -11,15 +11,15 @@
                     <div class="card-body text-center">
                         <img src="{{ url_for('static', filename=current_user.profile_picture) }}" alt="Profile Picture"
                              class="rounded-circle img-fluid" style="width: 150px; height: 150px;">
-                            <h5 class="my-3">
-                                {{ username }}
+                                <h5 class="my-3">
+                                <span id="text-username">{{ username }}</span>
                                 {% if is_self %}
                                 <button type="button" class="btn p-0 m-0 border-0" title="Edit Username" data-edit="username">
                                     <img src="{{ url_for('static', filename='images/edit-icon.png') }}" alt="Edit"
                                         style="width: 14px; height: 14px;">
                                 </button>
                                 {% endif %}
-                            </h5>
+                                </h5>
                         {% if is_self %}
                         <div class="d-flex justify-content-center mb-2">
                             <button type="button" class="btn btn-outline-primary btn-change-password"
@@ -33,34 +33,32 @@
                         <div class="card-body">
                             <!-- Full Name -->
                             <div class="row">
-                                <div class="col-sm-3"><p class="mb-0">Full Name</p></div>
-                                <div class="col-sm-9">
-                                    <p class="text-muted mb-0">
-                                        {{ fullname }}
-                                        {% if is_self %}
-                                        <button type="button" class="btn p-0 m-0 border-0" title="Edit Full Name" data-edit="fullname">
-                                            <img src="{{ url_for('static', filename='images/edit-icon.png') }}" alt="Edit"
-                                                style="width: 14px; height: 14px;">
-                                        </button>
-                                        {% endif %}
-                                    </p>
-                                </div>
+                            <div class="col-sm-3"><p class="mb-0">Full Name</p></div>
+                            <div class="col-sm-9">
+                                <p class="text-muted mb-0">
+                                <span id="text-fullname">{{ fullname }}</span>
+                                {% if is_self %}
+                                <button type="button" class="btn p-0 m-0 border-0" title="Edit Full Name" data-edit="fullname">
+                                    <img src="{{ url_for('static', filename='images/edit-icon.png') }}" alt="Edit" style="width:14px;height:14px;">
+                                </button>
+                                {% endif %}
+                                </p>
+                            </div>
                             </div>
                             <hr>
                             <!-- Email -->
                             <div class="row">
-                                <div class="col-sm-3"><p class="mb-0">Email</p></div>
-                                <div class="col-sm-9">
-                                    <p class="text-muted mb-0">
-                                        {{ email }}
-                                        {% if is_self %}
-                                        <button type="button" class="btn p-0 m-0 border-0" title="Edit Email" data-edit="email">
-                                            <img src="{{ url_for('static', filename='images/edit-icon.png') }}" alt="Edit"
-                                                style="width: 14px; height: 14px;">
-                                        </button>
-                                        {% endif %}
-                                    </p>
-                                </div>
+                            <div class="col-sm-3"><p class="mb-0">Email</p></div>
+                            <div class="col-sm-9">
+                                <p class="text-muted mb-0">
+                                <span id="text-email">{{ email }}</span>
+                                {% if is_self %}
+                                <button type="button" class="btn p-0 m-0 border-0" title="Edit Email" data-edit="email">
+                                    <img src="{{ url_for('static', filename='images/edit-icon.png') }}" alt="Edit" style="width:14px;height:14px;">
+                                </button>
+                                {% endif %}
+                                </p>
+                            </div>
                             </div>
                             <hr>
                             <!-- Projects -->
@@ -165,49 +163,45 @@
             }
         });
     });
-    
-    // Edit fullname/email/username
-    $(document).on('click', '[data-edit]', function () {
-        const field = $(this).data('edit');
-        const $p = $(this).closest('p');
-        const oldValue = $p.contents().filter(function () {
-            return this.nodeType === 3;
-        }).text().trim();
 
-        Swal.fire({
-            title: `Edit ${field}`,
-            input: 'text',
-            inputValue: oldValue,
-            showCancelButton: true,
-            confirmButtonText: 'Save Changes',
-            preConfirm: (value) => {
-                if (!value) return Swal.showValidationMessage('Field cannot be empty');
-                return value;
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: `/edit-${field}`,
-                    type: 'POST',
-                    headers: {
-                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    contentType: 'application/json',
-                    data: JSON.stringify({ [field]: result.value }),
-                    success: res => {
-                        Swal.fire('Updated!', res.message, 'success');
-                        $p.contents().filter(function () {
-                            return this.nodeType === 3;
-                        }).first().replaceWith(result.value + ' ');
-                    },
-                    error: res => {
-                        Swal.fire('Error', res.responseJSON?.error || `Error updating ${field}`, 'error');
-                    }
-                });
-            }
-        });
+    // Edit fullname/email/username
+$(document).on('click', '[data-edit]', function () {
+  const field = $(this).data('edit'); // 'username' | 'fullname' | 'email'
+  const $span = $(`#text-${field}`);
+  const oldValue = $span.text().trim();
+
+  Swal.fire({
+    title: `Edit ${field}`,
+    input: 'text',
+    inputValue: oldValue,
+    showCancelButton: true,
+    confirmButtonText: 'Save Changes',
+    preConfirm: (value) => {
+      const v = (value || '').trim();
+      if (!v) return Swal.showValidationMessage('Field cannot be empty');
+      return v;
+    }
+  }).then((result) => {
+    if (!result.isConfirmed) return;
+
+    $.ajax({
+      url: `/edit-${field}`,      // ai deja /edit-username; adaugă și /edit-fullname, /edit-email în backend
+      type: 'POST',
+      headers: {
+        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      contentType: 'application/json',
+      data: JSON.stringify({ [field]: result.value }),
+      success: res => {
+        Swal.fire('Updated!', res.message || 'Saved', 'success');
+        $span.text(result.value);  // 🔥 actualizare imediată în UI
+      },
+      error: res => {
+        Swal.fire('Error', res.responseJSON?.error || `Error updating ${field}`, 'error');
+      }
     });
-</script>
+  });
+});</script>
 {% endblock %}
 
 {% block head %}

@@ -62,12 +62,23 @@ def edit_email():
     db.session.commit()
     return {"message": "Email updated successfully"}, 200
 
-@bp.route("/update-username", methods=["POST"])
+@bp.route("/edit-username", methods=["POST"])
 @login_required
-def update_username():
-    username = request.json.get("username")
-    if username:
-        current_user.username = username
-        db.session.commit()
-        return {"message": "Username updated successfully."}, 200
-    return {"error": "Username cannot be empty."}, 400
+def edit_username():
+    data = request.get_json() or {}
+    new_username = (data.get("username") or "").strip()
+
+    if not new_username:
+        return {"error": "Username cannot be empty."}, 400
+
+    # unicitate (alt user cu același username)
+    exists = User.query.filter(
+        User.username == new_username,
+        User.id != current_user.id
+    ).first()
+    if exists:
+        return {"error": "Username already taken."}, 409
+
+    current_user.username = new_username
+    db.session.commit()
+    return {"message": "Username updated successfully."}, 200
