@@ -137,12 +137,14 @@
                      alt="{{ user.username }}">
               {% endfor %}
               {% if current_user.id == project.created_by or current_user in project.contributors %}
-                <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center ms-2"
-                        style="width:32px;height:32px;"
-                        title="Set contributors"
-                        onclick="openSetTaskContributors({{ task.id }})">
-                  <i class="bi bi-people"></i>
-                </button>
+              <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center ms-2"
+                      style="width:32px;height:32px;"
+                      title="Set contributors"
+                      onclick="openSetTaskContributors({{ task.id }})">
+                <img src="{{ url_for('static', filename='images/edit-icon.png') }}"
+                    alt="Set contributors"
+                    style="width:18px;height:18px;object-fit:contain;display:block;">
+              </button>
               {% endif %}
             </div>
           </div>
@@ -181,7 +183,9 @@
                         style="width:32px;height:32px;"
                         title="Set contributors"
                         onclick="openSetTaskContributors({{ task.id }})">
-                  <i class="bi bi-people"></i>
+                  <img src="{{ url_for('static', filename='images/edit-icon.png') }}"
+                      alt="Set contributors"
+                      style="width:18px;height:18px;object-fit:contain;display:block;">
                 </button>
               {% endif %}
             </div>
@@ -221,7 +225,9 @@
                         style="width:32px;height:32px;"
                         title="Set contributors"
                         onclick="openSetTaskContributors({{ task.id }})">
-                  <i class="bi bi-people"></i>
+                  <img src="{{ url_for('static', filename='images/edit-icon.png') }}"
+                      alt="Set contributors"
+                      style="width:18px;height:18px;object-fit:contain;display:block;">
                 </button>
               {% endif %}
             </div>
@@ -479,10 +485,15 @@ function openSetTaskContributors(taskId) {
     `).join("");
 
     const html = `
-      <div style="margin-bottom:8px; display:flex; gap:8px;">
-        <input type="text" id="filter-users" class="swal2-input" placeholder="Filter users..." style="flex:1; margin:0;">
-        <button type="button" id="btn-select-all" class="swal2-confirm swal2-styled" style="padding:6px 10px;">Select all</button>
-        <button type="button" id="btn-deselect-all" class="swal2-cancel swal2-styled" style="padding:6px 10px;">None</button>
+      <div style="margin-bottom:8px; display:flex; gap:8px; align-items:center;">
+        <input type="text" id="filter-users" class="swal2-input" placeholder="Filter users..."
+              style="flex:1; min-width:0; margin:0;">
+        <button type="button" id="btn-select-all"
+                class="swal2-confirm swal2-styled"
+                style="padding:6px 12px; white-space:nowrap; flex:0 0 auto;">Select all</button>
+        <button type="button" id="btn-deselect-all"
+                class="swal2-cancel swal2-styled"
+                style="padding:6px 12px; white-space:nowrap; flex:0 0 auto;">None</button>
       </div>
       <div class="contributor-box" style="max-height:260px;overflow:auto;">${list}</div>
     `;
