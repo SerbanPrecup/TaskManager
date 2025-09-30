@@ -28,12 +28,17 @@ def profile(user_id=None):
 @bp.route("/change-password", methods=["POST"])
 @login_required
 def change_password():
-    new_password = request.json.get("newPassword")
-    if not new_password:
-        return {"error": "Password is required"}, 400
+    data = request.get_json() or {}
+    current_password = data.get("currentPassword")
+    new_password = data.get("newPassword")
+
+    if not bcrypt.check_password_hash(current_user.password, current_password):
+        return jsonify({"error": "Current password is incorrect"}), 400
+
     current_user.password = bcrypt.generate_password_hash(new_password).decode("utf-8")
     db.session.commit()
-    return {"message": "Password changed successfully"}, 200
+
+    return jsonify({"success": True, "message": "Password changed successfully"})
 
 @bp.route("/edit-fullname", methods=["POST"])
 @login_required

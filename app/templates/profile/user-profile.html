@@ -124,18 +124,26 @@
         Swal.fire({
             title: 'Change Password',
             html: `
+                <input type="password" id="currentPassword" class="swal2-input" placeholder="Current Password">
                 <input type="password" id="newPassword" class="swal2-input" placeholder="New Password">
                 <input type="password" id="confirmPassword" class="swal2-input" placeholder="Confirm New Password">
             `,
             preConfirm: () => {
+                const currentPassword = $('#currentPassword').val();
                 const newPassword = $('#newPassword').val();
                 const confirmPassword = $('#confirmPassword').val();
-                const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$/;
+                const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
-                if (!newPassword || !confirmPassword) return Swal.showValidationMessage('All fields required');
-                if (newPassword !== confirmPassword) return Swal.showValidationMessage('Passwords do not match');
-                if (!regex.test(newPassword)) return Swal.showValidationMessage('Min 8 chars, uppercase, lowercase, number');
-                return { newPassword };
+                if (!currentPassword || !newPassword || !confirmPassword) {
+                    return Swal.showValidationMessage('All fields are required');
+                }
+                if (newPassword !== confirmPassword) {
+                    return Swal.showValidationMessage('New passwords do not match');
+                }
+                if (!regex.test(newPassword)) {
+                    return Swal.showValidationMessage('Password must have min 8 chars, at least 1 uppercase, 1 lowercase and 1 number');
+                }
+                return { currentPassword, newPassword };
             },
             showCancelButton: true
         }).then((result) => {
@@ -147,14 +155,17 @@
                         'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     },
                     contentType: 'application/json',
-                    data: JSON.stringify({ newPassword: result.value.newPassword }),
+                    data: JSON.stringify({
+                        currentPassword: result.value.currentPassword,
+                        newPassword: result.value.newPassword
+                    }),
                     success: res => Swal.fire('Success', res.message, 'success'),
                     error: res => Swal.fire('Error', res.responseJSON?.error || 'Failed to change password.', 'error')
                 });
             }
         });
     });
-
+    
     // Edit fullname/email/username
     $(document).on('click', '[data-edit]', function () {
         const field = $(this).data('edit');
