@@ -130,3 +130,20 @@ def toggle_project_visibility(project_id):
     project.is_public = make_public
     db.session.commit()
     return jsonify({"success": True, "message": "Visibility updated."})
+
+
+@bp.route("/project/<int:project_id>/delete", methods=["POST"])
+@login_required
+def delete_project(project_id):
+    project = Project.query.get_or_404(project_id)
+
+    if project.created_by != current_user.id:
+        return jsonify({"success": False, "message": "You are not allowed to delete this project."}), 403
+
+    try:
+        db.session.delete(project)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Project deleted successfully"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": f"Failed to delete project: {str(e)}"}), 500

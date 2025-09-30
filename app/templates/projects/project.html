@@ -57,6 +57,11 @@
                 onclick="changeProjectStatus()">
           <i class="bi bi-arrow-repeat"></i> Change Status
         </button>
+
+        <button class="btn btn-sm btn-outline-danger mt-2 d-flex align-items-center gap-1"
+                onclick="deleteProject()">
+          <i class="bi bi-trash"></i> Delete Project
+        </button>
       {% endif %}
     </div>
 
@@ -115,38 +120,48 @@
            ondragover="allowDrop(event)">
         <h6 class="text-center fw-bold">TO DO</h6>
         {% for task in project.tasks if task.status == 'To Do' %}
-        <div class="card mb-3"
-             draggable="true"
-             ondragstart="drag(event)"
-             id="task-{{ task.id }}">
+        <div class="card mb-3 position-relative"
+         draggable="true"
+         ondragstart="drag(event)"
+         id="task-{{ task.id }}">
+          {% if current_user.id == project.created_by or current_user in project.contributors %}
+        <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center"
+            style="width:28px;height:28px;position:absolute;top:6px;right:6px;z-index:10;"
+            title="Delete task"
+            onclick="deleteTask({{ task.id }})">
+          <img src="{{ url_for('static', filename='images/delete-icon.png') }}"
+           alt="Delete task"
+           style="width:14px;height:14px;object-fit:contain;display:block;">
+        </button>
+          {% endif %}
           <div class="card-body">
-            <h6 class="card-title">{{ task.name }}</h6>
-            <p class="card-text">{{ task.description }}</p>
-            <span class="badge bg-{{ 'danger' if task.priority == 3 else 'warning' if task.priority == 2 else 'success' }}">
-              Priority {{ task.priority }}
-            </span>
-            <p class="mt-2 mb-1"><strong>Deadline:</strong> {{ task.deadline.strftime('%Y-%m-%d') if task.deadline else 'N/A' }}</p>
+        <h6 class="card-title">{{ task.name }}</h6>
+        <p class="card-text">{{ task.description }}</p>
+        <span class="badge bg-{{ 'danger' if task.priority == 3 else 'warning' if task.priority == 2 else 'success' }}">
+          Priority {{ task.priority }}
+        </span>
+        <p class="mt-2 mb-1"><strong>Deadline:</strong> {{ task.deadline.strftime('%Y-%m-%d') if task.deadline else 'N/A' }}</p>
 
-            <!-- Avatare + buton Set -->
-            <div class="mt-2 d-flex flex-wrap gap-1 align-items-center">
-              {% for user in task.contributors %}
-                <img src="{{ url_for('static', filename=user.profile_picture) }}"
-                     title="{{ user.fullname }}"
-                     class="rounded-circle"
-                     style="width: 30px; height: 30px; object-fit: cover;"
-                     alt="{{ user.username }}">
-              {% endfor %}
-              {% if current_user.id == project.created_by or current_user in project.contributors %}
-              <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center ms-2"
-                      style="width:32px;height:32px;"
-                      title="Set contributors"
-                      onclick="openSetTaskContributors({{ task.id }})">
-                <img src="{{ url_for('static', filename='images/edit-icon.png') }}"
-                    alt="Set contributors"
-                    style="width:18px;height:18px;object-fit:contain;display:block;">
-              </button>
-              {% endif %}
-            </div>
+        <!-- Avatare + buton Set -->
+        <div class="mt-2 d-flex flex-wrap gap-1 align-items-center">
+          {% for user in task.contributors %}
+            <img src="{{ url_for('static', filename=user.profile_picture) }}"
+             title="{{ user.fullname }}"
+             class="rounded-circle"
+             style="width: 30px; height: 30px; object-fit: cover;"
+             alt="{{ user.username }}">
+          {% endfor %}
+          {% if current_user.id == project.created_by or current_user in project.contributors %}
+          <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center ms-2"
+              style="width:32px;height:32px;"
+              title="Set contributors"
+              onclick="openSetTaskContributors({{ task.id }})">
+            <img src="{{ url_for('static', filename='images/edit-icon.png') }}"
+            alt="Set contributors"
+            style="width:18px;height:18px;object-fit:contain;display:block;">
+          </button>
+          {% endif %}
+        </div>
           </div>
         </div>
         {% endfor %}
@@ -158,37 +173,47 @@
            ondragover="allowDrop(event)">
         <h6 class="text-center fw-bold">IN PROGRESS</h6>
         {% for task in project.tasks if task.status == 'In Progress' %}
-        <div class="card mb-3"
-             draggable="true"
-             ondragstart="drag(event)"
-             id="task-{{ task.id }}">
+        <div class="card mb-3 position-relative"
+         draggable="true"
+         ondragstart="drag(event)"
+         id="task-{{ task.id }}">
+          {% if current_user.id == project.created_by or current_user in project.contributors %}
+        <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center"
+            style="width:28px;height:28px;position:absolute;top:6px;right:6px;z-index:10;"
+            title="Delete task"
+            onclick="deleteTask({{ task.id }})">
+          <img src="{{ url_for('static', filename='images/delete-icon.png') }}"
+          alt="Delete task"
+          style="width:14px;height:14px;object-fit:contain;display:block;">
+        </button>
+          {% endif %}
           <div class="card-body">
-            <h6 class="card-title">{{ task.name }}</h6>
-            <p class="card-text">{{ task.description }}</p>
-            <span class="badge bg-{{ 'danger' if task.priority == 3 else 'warning' if task.priority == 2 else 'success' }}">
-              Priority {{ task.priority }}
-            </span>
-            <p class="mt-2 mb-1"><strong>Deadline:</strong> {{ task.deadline.strftime('%Y-%m-%d') if task.deadline else 'N/A' }}</p>
+        <h6 class="card-title">{{ task.name }}</h6>
+        <p class="card-text">{{ task.description }}</p>
+        <span class="badge bg-{{ 'danger' if task.priority == 3 else 'warning' if task.priority == 2 else 'success' }}">
+          Priority {{ task.priority }}
+        </span>
+        <p class="mt-2 mb-1"><strong>Deadline:</strong> {{ task.deadline.strftime('%Y-%m-%d') if task.deadline else 'N/A' }}</p>
 
-            <div class="mt-2 d-flex flex-wrap gap-1 align-items-center">
-              {% for user in task.contributors %}
-                <img src="{{ url_for('static', filename=user.profile_picture) }}"
-                     title="{{ user.fullname }}"
-                     class="rounded-circle"
-                     style="width: 30px; height: 30px; object-fit: cover;"
-                     alt="{{ user.username }}">
-              {% endfor %}
-              {% if current_user.id == project.created_by or current_user in project.contributors %}
-                <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center ms-2"
-                        style="width:32px;height:32px;"
-                        title="Set contributors"
-                        onclick="openSetTaskContributors({{ task.id }})">
-                  <img src="{{ url_for('static', filename='images/edit-icon.png') }}"
-                      alt="Set contributors"
-                      style="width:18px;height:18px;object-fit:contain;display:block;">
-                </button>
-              {% endif %}
-            </div>
+        <div class="mt-2 d-flex flex-wrap gap-1 align-items-center">
+          {% for user in task.contributors %}
+            <img src="{{ url_for('static', filename=user.profile_picture) }}"
+             title="{{ user.fullname }}"
+             class="rounded-circle"
+             style="width: 30px; height: 30px; object-fit: cover;"
+             alt="{{ user.username }}">
+          {% endfor %}
+          {% if current_user.id == project.created_by or current_user in project.contributors %}
+            <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center ms-2"
+            style="width:32px;height:32px;"
+            title="Set contributors"
+            onclick="openSetTaskContributors({{ task.id }})">
+          <img src="{{ url_for('static', filename='images/edit-icon.png') }}"
+              alt="Set contributors"
+              style="width:18px;height:18px;object-fit:contain;display:block;">
+            </button>
+          {% endif %}
+        </div>
           </div>
         </div>
         {% endfor %}
@@ -200,39 +225,53 @@
            ondragover="allowDrop(event)">
         <h6 class="text-center fw-bold">DONE</h6>
         {% for task in project.tasks if task.status == 'Done' %}
-        <div class="card mb-3"
-             draggable="true"
-             ondragstart="drag(event)"
-             id="task-{{ task.id }}">
-          <div class="card-body">
-            <h6 class="card-title">{{ task.name }}</h6>
-            <p class="card-text">{{ task.description }}</p>
-            <span class="badge bg-{{ 'danger' if task.priority == 3 else 'warning' if task.priority == 2 else 'success' }}">
-              Priority {{ task.priority }}
-            </span>
-            <p class="mt-2 mb-1"><strong>Deadline:</strong> {{ task.deadline.strftime('%Y-%m-%d') if task.deadline else 'N/A' }}</p>
+            <div class="card mb-3 position-relative"
+                draggable="true"
+                ondragstart="drag(event)"
+                id="task-{{ task.id }}">
 
-            <div class="mt-2 d-flex flex-wrap gap-1 align-items-center">
-              {% for user in task.contributors %}
-                <img src="{{ url_for('static', filename=user.profile_picture) }}"
-                     title="{{ user.fullname }}"
-                     class="rounded-circle"
-                     style="width: 30px; height: 30px; object-fit: cover;"
-                     alt="{{ user.username }}">
-              {% endfor %}
+              <!-- Buton Delete în dreapta sus -->
               {% if current_user.id == project.created_by or current_user in project.contributors %}
-                <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center ms-2"
-                        style="width:32px;height:32px;"
-                        title="Set contributors"
-                        onclick="openSetTaskContributors({{ task.id }})">
-                  <img src="{{ url_for('static', filename='images/edit-icon.png') }}"
-                      alt="Set contributors"
-                      style="width:18px;height:18px;object-fit:contain;display:block;">
+                <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center"
+                        style="width:28px;height:28px;position:absolute;top:6px;right:6px;z-index:10;"
+                        title="Delete task"
+                        onclick="deleteTask({{ task.id }})">
+                  <img src="{{ url_for('static', filename='images/delete-icon.png') }}"
+                      alt="Delete task"
+                      style="width:14px;height:14px;object-fit:contain;display:block;">
                 </button>
               {% endif %}
+
+              <div class="card-body">
+                <h6 class="card-title">{{ task.name }}</h6>
+                <p class="card-text">{{ task.description }}</p>
+                <span class="badge bg-{{ 'danger' if task.priority == 3 else 'warning' if task.priority == 2 else 'success' }}">
+                  Priority {{ task.priority }}
+                </span>
+                <p class="mt-2 mb-1"><strong>Deadline:</strong> {{ task.deadline.strftime('%Y-%m-%d') if task.deadline else 'N/A' }}</p>
+
+                <div class="mt-2 d-flex flex-wrap gap-1 align-items-center">
+                  {% for user in task.contributors %}
+                    <img src="{{ url_for('static', filename=user.profile_picture) }}"
+                        title="{{ user.fullname }}"
+                        class="rounded-circle"
+                        style="width: 30px; height: 30px; object-fit: cover;"
+                        alt="{{ user.username }}">
+                  {% endfor %}
+                  {% if current_user.id == project.created_by or current_user in project.contributors %}
+                    <!-- Set contributors rămâne jos -->
+                    <button class="btn p-0 border rounded-circle d-inline-flex justify-content-center align-items-center ms-2"
+                            style="width:32px;height:32px;"
+                            title="Set contributors"
+                            onclick="openSetTaskContributors({{ task.id }})">
+                      <img src="{{ url_for('static', filename='images/edit-icon.png') }}"
+                          alt="Set contributors"
+                          style="width:18px;height:18px;object-fit:contain;display:block;">
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
         {% endfor %}
       </div>
 
@@ -245,6 +284,40 @@
 
 <!-- SweetAlert -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+function deleteProject() {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "This will permanently delete the project and all related tasks.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel',
+    confirmButtonColor: '#d33',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      fetch(window.location.pathname + '/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          Swal.fire('Deleted!', data.message || 'The project has been deleted.', 'success')
+            .then(() => window.location.href = '/dashboard');
+        } else {
+          Swal.fire('Error', data.message || 'Could not delete project.', 'error');
+        }
+      })
+      .catch(() => Swal.fire('Error', 'Request failed.', 'error'));
+    }
+  });
+}
+</script>
 
 <!-- Add Contributor to Project (by username) -->
 <script>
@@ -286,6 +359,42 @@ function addContributor() {
   });
 }
 </script>
+
+<script>
+function deleteTask(taskId) {
+  Swal.fire({
+    title: 'Delete Task?',
+    text: "This action cannot be undone.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete it',
+    cancelButtonText: 'Cancel',
+    confirmButtonColor: '#d33',
+  }).then((result) => {
+    if (!result.isConfirmed) return;
+
+    fetch(`/task/${taskId}/delete`, {
+      method: 'POST', // asigură-te că ruta acceptă POST
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        Swal.fire('Deleted!', data.message || 'Task deleted.', 'success')
+          .then(() => location.reload());
+      } else {
+        Swal.fire('Error', data.message || 'Could not delete task.', 'error');
+      }
+    })
+    .catch(() => Swal.fire('Error', 'Request failed.', 'error'));
+  });
+}
+</script>
+
+
 
 <!-- Change Project Status -->
 <script>

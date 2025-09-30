@@ -112,3 +112,22 @@ def set_task_contributors(task_id):
     db.session.commit()
 
     return jsonify({"success": True})
+
+
+@bp.route("/task/<int:task_id>/delete", methods=["POST"])
+@login_required
+def delete_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    project = task.project
+
+    # doar creatorul proiectului sau contributorii proiectului pot sterge task-ul
+    if current_user.id != project.created_by and current_user not in project.contributors:
+        return jsonify({"success": False, "message": "Not allowed."}), 403
+
+    try:
+        db.session.delete(task)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Task deleted successfully"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": f"Failed to delete task: {str(e)}"}), 500

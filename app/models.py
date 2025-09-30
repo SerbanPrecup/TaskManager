@@ -45,7 +45,15 @@ class Project(db.Model):
     is_public = db.Column(db.Boolean, default=False)
     created_by = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
-    tasks = db.relationship("Task", backref="project", lazy=True)
+    # IMPORTANT: cascade + passive_deletes
+    tasks = db.relationship(
+        "Task",
+        backref=db.backref("project", lazy=True),
+        cascade="all, delete, delete-orphan",
+        passive_deletes=True,
+        lazy=True,
+    )
+
     contributors = db.relationship("User", secondary=project_contributors, back_populates="contributed_projects")
 
     def __repr__(self):
@@ -56,7 +64,14 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(1000), nullable=False)
-    id_project = db.Column(db.Integer, db.ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+
+    # FK deja are ondelete=CASCADE; păstrăm NOT NULL
+    id_project = db.Column(
+        db.Integer,
+        db.ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
     status = db.Column(db.String(100), nullable=False)
     priority = db.Column(db.Integer, nullable=False)
     deadline = db.Column(db.DateTime, nullable=True)
