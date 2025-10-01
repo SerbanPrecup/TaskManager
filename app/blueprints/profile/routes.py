@@ -71,7 +71,6 @@ def edit_username():
     if not new_username:
         return {"error": "Username cannot be empty."}, 400
 
-    # unicitate (alt user cu același username)
     exists = User.query.filter(
         User.username == new_username,
         User.id != current_user.id

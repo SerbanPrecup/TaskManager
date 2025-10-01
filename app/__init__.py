@@ -6,7 +6,6 @@ from .extensions import db, login_manager, bcrypt, csrf
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
-# 👉 Enable FK constraints for SQLite
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     if isinstance(dbapi_connection, sqlite3.Connection):
@@ -18,16 +17,13 @@ def create_app(config_class: type = DevConfig) -> Flask:
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
 
-    # Căi ABSOLUTE pentru upload, sub app/static
     app.config["UPLOAD_PROFILE_DIR"] = os.path.join(app.static_folder, "images", "profile_pictures")
     app.config["UPLOAD_PROJECT_DIR"] = os.path.join(app.static_folder, "images", "project_pictures")
 
-    # Creează directoarele dacă lipsesc
     from .utils.files import ensure_dirs
     ensure_dirs(app.config["UPLOAD_PROFILE_DIR"], app.config["UPLOAD_PROJECT_DIR"])
 
-    # Init extensions
-    db.init_app(app)   # <-- acum se aplică și PRAGMA-ul de FK
+    db.init_app(app)
     bcrypt.init_app(app)
     csrf.init_app(app)
     login_manager.init_app(app)

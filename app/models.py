@@ -45,7 +45,6 @@ class Project(db.Model):
     is_public = db.Column(db.Boolean, default=False)
     created_by = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
-    # IMPORTANT: cascade + passive_deletes
     tasks = db.relationship(
         "Task",
         backref=db.backref("project", lazy=True),
@@ -65,7 +64,6 @@ class Task(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(1000), nullable=False)
 
-    # FK deja are ondelete=CASCADE; păstrăm NOT NULL
     id_project = db.Column(
         db.Integer,
         db.ForeignKey("projects.id", ondelete="CASCADE"),

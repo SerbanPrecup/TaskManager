@@ -1,0 +1,16 @@
+section.bg-light {
+  min-height: calc(100vh - 120px);
+}
+
+.card img.rounded-circle {
+  border: 3px solid rgba(0, 0, 0, 0.05);
+}
+
+[data-edit] img {
+  opacity: 0.7;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+[data-edit]:hover img {
+  opacity: 1;
+  transform: scale(1.05);
+}

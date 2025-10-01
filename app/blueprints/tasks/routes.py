@@ -59,13 +59,10 @@ def get_task_contributors(task_id):
     task = Task.query.get_or_404(task_id)
     project = task.project
 
-    # permisiuni: creatorul proiectului sau contributorii proiectului
     if current_user not in project.contributors and current_user.id != project.created_by:
         return jsonify({"success": False, "message": "No permission"}), 403
 
-    # sursa de adevăr: toți contributorii proiectului (+ opțional creatorul)
     pool_users = list(project.contributors)
-    # dacă vrei să permiți și creatorul ca assignable:
     creator = project.creator
     if creator and creator not in pool_users:
         pool_users.append(creator)
@@ -76,7 +73,7 @@ def get_task_contributors(task_id):
             "id": u.id,
             "username": u.username,
             "fullname": u.fullname,
-            "avatar": f"/static/{u.profile_picture}",  # profil relativ salvat în DB
+            "avatar": f"/static/{u.profile_picture}",
             "checked": (u in task.contributors)
         })
 
@@ -97,16 +94,13 @@ def set_task_contributors(task_id):
     if not isinstance(ids, list):
         return jsonify({"success": False, "message": "Invalid payload"}), 400
 
-    # Pool permis: contributorii proiectului (+ opțional creatorul)
     allowed = {u.id for u in project.contributors}
     allowed.add(project.created_by)
 
-    # Validare: toți id-urile trebuie să fie din pool-ul permis
     for uid in ids:
         if uid not in allowed:
             return jsonify({"success": False, "message": "Invalid user selected"}), 400
 
-    # Setează noul set de contributori
     new_users = User.query.filter(User.id.in_(ids)).all()
     task.contributors = new_users
     db.session.commit()
@@ -120,7 +114,6 @@ def delete_task(task_id):
     task = Task.query.get_or_404(task_id)
     project = task.project
 
-    # doar creatorul proiectului sau contributorii proiectului pot sterge task-ul
     if current_user.id != project.created_by and current_user not in project.contributors:
         return jsonify({"success": False, "message": "Not allowed."}), 403
 

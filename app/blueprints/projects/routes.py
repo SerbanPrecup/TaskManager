@@ -15,7 +15,6 @@ def list_projects():
     contributed = user.contributed_projects
     all_projects = created + contributed
 
-    # dacă nu ai deja calculul progresului
     for p in all_projects:
         try:
             p.progress = estimate_project_progress(p.status)
@@ -36,7 +35,6 @@ def create_project():
     if request.method == "GET":
         return render_template("projects/create-project.html", all_users=User.query.all())
 
-    # POST (multipart/form-data din FormData)
     name = request.form.get("name")
     description = request.form.get("description")
     is_public = request.form.get("is_public") == "true"
@@ -45,28 +43,22 @@ def create_project():
     if not name or not description:
         return jsonify({"success": False, "message": "Name and description are required"}), 400
 
-    # valoare implicită relativă la /static pentru DB
     bg_picture_rel = "images/project_pictures/default-bg.jpg"
 
-    # dacă se încarcă o imagine
     if "background_picture" in request.files:
         file = request.files["background_picture"]
-        if file and allowed_file(file.filename):  # allowed_file să citească ALLOWED_EXTENSIONS din config
+        if file and allowed_file(file.filename):
             ext = file.filename.rsplit(".", 1)[1].lower()
             new_filename = f"{uuid.uuid4().hex}.{ext}"
 
-            # director ABSOLUT din config (setat în create_app)
             folder_abs = current_app.config["UPLOAD_PROJECT_DIR"]
             os.makedirs(folder_abs, exist_ok=True)
 
-            # salvează pe disc
             abs_path = os.path.join(folder_abs, new_filename)
             file.save(abs_path)
 
-            # în DB păstrezi DOAR calea relativă la /static
             bg_picture_rel = os.path.join("images", "project_pictures", new_filename).replace("\\", "/")
 
-    # creează proiect
     new_project = Project(
         name=name,
         description=description,
@@ -76,7 +68,6 @@ def create_project():
         is_public=is_public
     )
 
-    # adaugă contribuitori
     for uid in contributor_ids:
         user = User.query.get(int(uid))
         if user:

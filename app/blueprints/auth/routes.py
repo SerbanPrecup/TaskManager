@@ -46,7 +46,6 @@ def register():
             flash("Email or Username already registered. Please log in.", "danger")
             return redirect(url_for("auth.register"))
 
-        # fallback implicit (relativ la /static)
         profile_picture_rel = "images/profile_pictures/profile.png"
 
         new_user = User(
@@ -59,22 +58,18 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        # upload (opțional)
         if "profile_picture" in request.files:
             file = request.files["profile_picture"]
-            if file and allowed_file(file.filename):  # folosește util-ul tău
+            if file and allowed_file(file.filename):
                 ext = file.filename.rsplit(".", 1)[1].lower()
                 new_filename = f"{uuid.uuid4().hex}.{ext}"
 
-                # DIR absolut din config (din create_app)
                 folder_abs = current_app.config["UPLOAD_PROFILE_DIR"]
                 os.makedirs(folder_abs, exist_ok=True)
 
-                # salvezi pe disc
                 file_path_abs = os.path.join(folder_abs, new_filename)
                 file.save(file_path_abs)
 
-                # în DB salvezi DOAR relativ la /static
                 new_user.profile_picture = os.path.join("images", "profile_pictures", new_filename).replace("\\", "/")
                 db.session.commit()
 
