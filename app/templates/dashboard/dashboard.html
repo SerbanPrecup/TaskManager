@@ -1,5 +1,5 @@
 {% extends 'base.html' %} {% block title %}Dashboard{% endblock %} {% block head
-%} {# dacă vrei un CSS separat pentru dashboard, îl poți include aici #} {#
+%} {#
 <link
   rel="stylesheet"
   href="{{ url_for('static', filename='css/dashboard.css') }}"
@@ -167,8 +167,5 @@
   </div>
 </section>
 {% endblock %} {% block scripts %}
-<script
-  defer
-  src="{{ url_for('static', filename='js/create-project.js') }}"
-></script>
+<script src="{{ url_for('static', filename='js/create-project.js') }}"></script>
 {% endblock %}

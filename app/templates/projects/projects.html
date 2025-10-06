@@ -60,6 +60,7 @@ done_statuses) | list %}
                 {{ project.progress }}%
               </div>
             </div>
+
             <span
               class="badge bg-{{ status_colors.get(project.status, 'dark') }}"
             >
@@ -160,9 +161,6 @@ done_statuses) | list %}
     </div>
   </div>
 </section>
-{% endblock %} {% block scripts %}
-<script
-  defer
-  src="{{ url_for('static', filename='js/create-project.js') }}"
-></script>
-{# dacă ai și alt js pentru pagina asta, îl adaugi aici #} {% endblock %}
+{% endblock %}{% block scripts %}
+<script src="{{ url_for('static', filename='js/create-project.js') }}"></script>
+{% endblock %}
