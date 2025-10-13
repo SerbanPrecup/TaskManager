@@ -12,16 +12,76 @@
     Swal.fire({
       title: "Change Password",
       html: `
-        <input type="password" id="currentPassword" class="swal2-input" placeholder="Current Password">
-        <input type="password" id="newPassword" class="swal2-input" placeholder="New Password">
-        <input type="password" id="confirmPassword" class="swal2-input" placeholder="Confirm New Password">
-      `,
+      <input type="password" id="currentPassword" class="swal2-input" placeholder="Current Password">
+      <input type="password" id="newPassword" class="swal2-input" placeholder="New Password">
+      <input type="password" id="confirmPassword" class="swal2-input" placeholder="Confirm New Password">
+      <div id="password-hint" class="text-start small mt-2 text-muted"></div>
+    `,
       showCancelButton: true,
+      confirmButtonText: "Change",
+      didOpen: () => {
+        const newPwInput = document.getElementById("newPassword");
+        const hint = document.getElementById("password-hint");
+
+        newPwInput.addEventListener("input", async () => {
+          const newPassword = newPwInput.value;
+          const csrf = getCSRF();
+          if (!newPassword) {
+            hint.innerHTML = "";
+            return;
+          }
+
+          try {
+            const res = await fetch(window.passwordCheckUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrf,
+              },
+              body: JSON.stringify({
+                username: window.currentUsername || "",
+                email: window.currentEmail || "",
+                password: newPassword,
+              }),
+            });
+
+            const data = await res.json();
+            let output = "";
+
+            output += data.length
+              ? "✅ Minimum 8 characters<br>"
+              : "❌ Minimum 8 characters<br>";
+            output += data.uppercase
+              ? "✅ At least one uppercase letter<br>"
+              : "❌ At least one uppercase letter<br>";
+            output += data.lowercase
+              ? "✅ At least one lowercase letter<br>"
+              : "❌ At least one lowercase letter<br>";
+            output +=
+              data.digit || data.special
+                ? "✅ At least one number or special character<br>"
+                : "❌ At least one number or special character<br>";
+            output += data.username_in_password
+              ? "❌ Must not contain your username<br>"
+              : "✅ Does not contain your username<br>";
+            output += data.email_in_password
+              ? "❌ Must not contain part of your email<br>"
+              : "✅ Does not contain part of your email<br>";
+            output += data.simple_sequences
+              ? "❌ Avoid simple patterns (123, abc, qwe)<br>"
+              : "✅ No simple patterns detected<br>";
+
+            hint.innerHTML = output;
+          } catch {
+            hint.innerHTML =
+              "<span class='text-danger'>Error checking password strength.</span>";
+          }
+        });
+      },
       preConfirm: () => {
         const currentPassword = $("#currentPassword").val();
         const newPassword = $("#newPassword").val();
         const confirmPassword = $("#confirmPassword").val();
-        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
         if (!currentPassword || !newPassword || !confirmPassword) {
           return Swal.showValidationMessage("All fields are required");
@@ -29,11 +89,7 @@
         if (newPassword !== confirmPassword) {
           return Swal.showValidationMessage("New passwords do not match");
         }
-        if (!regex.test(newPassword)) {
-          return Swal.showValidationMessage(
-            "Password must have min 8 chars, at least 1 uppercase, 1 lowercase and 1 number"
-          );
-        }
+
         return { currentPassword, newPassword };
       },
     }).then((result) => {

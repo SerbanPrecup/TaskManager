@@ -35,6 +35,28 @@ def change_password():
     if not bcrypt.check_password_hash(current_user.password, current_password):
         return jsonify({"error": "Current password is incorrect"}), 400
 
+    from app.utils.password_utils import password_complexity
+    checks = password_complexity(new_password, current_user.username, current_user.email)
+
+    if not checks["strong"]:
+        reasons = []
+        if not checks["length"]:
+            reasons.append("Password must be at least 8 characters long.")
+        if not checks["uppercase"]:
+            reasons.append("Password must contain at least one uppercase letter.")
+        if not checks["lowercase"]:
+            reasons.append("Password must contain at least one lowercase letter.")
+        if not (checks["digit"] or checks["special"]):
+            reasons.append("Password must contain at least one number or special character.")
+        if checks["username_in_password"]:
+            reasons.append("Password must not contain your username.")
+        if checks["email_in_password"]:
+            reasons.append("Password must not contain part of your email address.")
+        if checks["simple_sequences"]:
+            reasons.append("Password must not contain simple patterns like '123', 'abc', or 'qwe'.")
+
+        return jsonify({"error": " ".join(reasons)}), 400
+
     current_user.password = bcrypt.generate_password_hash(new_password).decode("utf-8")
     db.session.commit()
 

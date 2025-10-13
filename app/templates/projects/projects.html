@@ -7,20 +7,12 @@
 {% endblock %} {% block content %} {% set status_colors = { 'Not Started':
 'secondary', 'In Progress': 'primary', 'On Hold': 'warning', 'Needs Review':
 'info', 'Completed': 'success', 'Cancelled': 'danger', 'Delayed': 'danger' } %}
-{% set active_statuses = ['Not Started', 'In Progress', 'On Hold', 'Needs
-Review', 'Delayed'] %} {% set done_statuses = ['Completed', 'Cancelled'] %} {%
-set active_projects = projects | selectattr('status', 'in', active_statuses) |
-list %} {% set finished_projects = projects | selectattr('status', 'in',
-done_statuses) | list %}
 
-<!-- Active Projects -->
 <section class="section-title bg-light py-4 position-relative">
   <div
     class="section-header position-absolute top-0 start-50 translate-middle bg-light px-3"
   >
-    <h2 class="mb-0 text-primary">
-      Active Projects ({{ active_projects|length }})
-    </h2>
+    <h2 class="mb-0 text-primary">Projects</h2>
   </div>
 
   <div class="container-fluid">
@@ -32,9 +24,9 @@ done_statuses) | list %}
   </div>
 
   <div class="container-fluid">
-    <div class="row flex-row flex-nowrap overflow-auto">
-      {% if active_projects %} {% for project in active_projects %}
-      <div class="col-lg-3 col-md-4 col-sm-6 col-10 mb-3">
+    <div class="row g-3">
+      {% if projects %} {% for project in projects %}
+      <div class="col-lg-3 col-md-4 col-sm-6 col-12">
         <div class="card h-100">
           <div class="overflow-hidden" style="max-height: 200px">
             <img
@@ -52,10 +44,7 @@ done_statuses) | list %}
               <div
                 class="progress-bar bg-{{ status_colors.get(project.status, 'dark') }}"
                 role="progressbar"
-                style="width: {{ project.progress }}%"
-                aria-valuenow="{{ project.progress }}"
-                aria-valuemin="0"
-                aria-valuemax="100"
+                style="width: {{ project.progress }}%;"
               >
                 {{ project.progress }}%
               </div>
@@ -68,99 +57,31 @@ done_statuses) | list %}
             </span>
 
             <p class="card-text mt-2">
-              <small class="text-muted"
-                >Last updated {{ project.updated_at }}</small
-              >
+              <small class="text-muted">
+                Last updated {{ project.updated_at.strftime('%Y-%m-%d %H:%M') if
+                project.updated_at else 'N/A' }}
+              </small>
             </p>
 
             <div class="mt-auto">
               <a
                 href="{{ url_for('projects.project_detail', project_id=project.id) }}"
                 class="btn btn-primary w-100"
-                >Go to Project</a
               >
+                Go to Project
+              </a>
             </div>
           </div>
         </div>
       </div>
       {% endfor %} {% else %}
       <div class="col-12 text-center">
-        <h5 class="text-muted">No active projects.</h5>
+        <h5 class="text-muted">You have no projects yet.</h5>
       </div>
       {% endif %}
     </div>
   </div>
 </section>
-
-<!-- Completed / Cancelled Projects -->
-<section class="section-title bg-light py-4 position-relative">
-  <div
-    class="section-header position-absolute top-0 start-50 translate-middle bg-light px-3"
-  >
-    <h2 class="mb-0 text-primary">
-      Completed / Cancelled ({{ finished_projects|length }})
-    </h2>
-  </div>
-
-  <div class="container-fluid">
-    <div class="row flex-row flex-nowrap overflow-auto">
-      {% if finished_projects %} {% for project in finished_projects %}
-      <div class="col-lg-3 col-md-4 col-sm-6 col-10 mb-3">
-        <div class="card h-100 border-success-subtle">
-          <div class="overflow-hidden" style="max-height: 200px">
-            <img
-              src="{{ url_for('static', filename=project.background_picture) }}"
-              class="img-fluid w-100"
-              alt="Project Image"
-              style="object-fit: cover; filter: grayscale(0.2)"
-            />
-          </div>
-          <div class="card-body d-flex flex-column">
-            <h5 class="card-title">{{ project.name }}</h5>
-            <p class="card-text">{{ project.description }}</p>
-
-            <div class="progress mb-2">
-              <div
-                class="progress-bar bg-{{ status_colors.get(project.status, 'dark') }}"
-                role="progressbar"
-                style="width: {{ project.progress }}%"
-                aria-valuenow="{{ project.progress }}"
-                aria-valuemin="0"
-                aria-valuemax="100"
-              >
-                {{ project.progress }}%
-              </div>
-            </div>
-            <span
-              class="badge bg-{{ status_colors.get(project.status, 'dark') }}"
-            >
-              {{ project.status }}
-            </span>
-
-            <p class="card-text mt-2">
-              <small class="text-muted"
-                >Last updated {{ project.updated_at }}</small
-              >
-            </p>
-
-            <div class="mt-auto">
-              <a
-                href="{{ url_for('projects.project_detail', project_id=project.id) }}"
-                class="btn btn-outline-secondary w-100"
-                >View Project</a
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-      {% endfor %} {% else %}
-      <div class="col-12 text-center">
-        <h5 class="text-muted">No completed or cancelled projects.</h5>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-</section>
-{% endblock %}{% block scripts %}
+{% endblock %} {% block scripts %}
 <script src="{{ url_for('static', filename='js/create-project.js') }}"></script>
 {% endblock %}

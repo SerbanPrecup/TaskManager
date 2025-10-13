@@ -1,4 +1,5 @@
-from flask import render_template, request, redirect, url_for, flash, current_app
+import email
+from flask import jsonify, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, current_user
 from ...extensions import db, bcrypt
 from ...models import User
@@ -6,6 +7,7 @@ from . import bp
 from ...config import BaseConfig
 from ...utils.files import allowed_file
 import os, uuid
+from app.utils.password_utils import password_complexity
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -35,45 +37,58 @@ def register():
         username = request.form.get("username")
         email = request.form.get("email")
         fullname = request.form.get("fullname")
-        password = bcrypt.generate_password_hash(request.form.get("password")).decode("utf-8")
+        password_raw = request.form.get("password")
         confirm_password = request.form.get("confirm_password")
 
-        if confirm_password != request.form.get("password"):
+        if confirm_password != password_raw:
             flash("The passwords do not match.", "danger")
             return redirect(url_for("auth.register"))
 
         if User.query.filter_by(email=email).first() or User.query.filter_by(username=username).first():
-            flash("Email or Username already registered. Please log in.", "danger")
+            flash("Email or Username already registered.", "danger")
             return redirect(url_for("auth.register"))
 
-        profile_picture_rel = "images/profile_pictures/profile.png"
+        checks = password_complexity(password_raw, username, email)
+        if not checks["strong"]:
+            flash("Password does not meet security requirements.", "danger")
+            if not checks["length"]:
+                flash("Password must be at least 8 characters long.", "warning")
+            if not checks["uppercase"]:
+                flash("Password must contain at least one uppercase letter.", "warning")
+            if not checks["lowercase"]:
+                flash("Password must contain at least one lowercase letter.", "warning")
+            if not checks["digit"] and not checks["special"]:
+                flash("Password must contain at least one number or special character.", "warning")
+            if checks["username_in_password"]:
+                flash("Password must not contain your username.", "warning")
+            if checks["email_in_password"]:
+                flash("Password must not contain part of your email address.", "warning")
+            if checks["simple_sequences"]:
+                flash("Password must not contain simple patterns like '123', 'abc', or 'qwe'.", "warning")
+            return redirect(url_for("auth.register"))
+
+        hashed_password = bcrypt.generate_password_hash(password_raw).decode("utf-8")
 
         new_user = User(
             username=username,
             fullname=fullname,
             email=email,
-            password=password,
-            profile_picture=profile_picture_rel
+            password=hashed_password,
+            profile_picture="images/profile_pictures/profile.png"
         )
         db.session.add(new_user)
         db.session.commit()
-
-        if "profile_picture" in request.files:
-            file = request.files["profile_picture"]
-            if file and allowed_file(file.filename):
-                ext = file.filename.rsplit(".", 1)[1].lower()
-                new_filename = f"{uuid.uuid4().hex}.{ext}"
-
-                folder_abs = current_app.config["UPLOAD_PROFILE_DIR"]
-                os.makedirs(folder_abs, exist_ok=True)
-
-                file_path_abs = os.path.join(folder_abs, new_filename)
-                file.save(file_path_abs)
-
-                new_user.profile_picture = os.path.join("images", "profile_pictures", new_filename).replace("\\", "/")
-                db.session.commit()
 
         flash("Account created successfully.", "success")
         return redirect(url_for("auth.login"))
 
     return render_template("auth/register.html")
+
+@bp.route("/password-check", methods=["POST"])
+def password_check():
+    data = request.get_json(silent=True) or {}
+    username = data.get("username", "") or ""
+    email = data.get("email", "") or ""
+    password = data.get("password", "") or ""
+    result = password_complexity(password, username, email)
+    return jsonify(result)

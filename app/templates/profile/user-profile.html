@@ -167,5 +167,11 @@
   </div>
 </section>
 {% endblock %} {% block scripts %}
+<script>
+  window.passwordCheckUrl = "{{ url_for('auth.password_check') }}";
+  window.currentUsername = "{{ current_user.username }}";
+  window.currentEmail = "{{ current_user.email }}";
+</script>
 <script defer src="{{ url_for('static', filename='js/profile.js') }}"></script>
+
 {% endblock %}
